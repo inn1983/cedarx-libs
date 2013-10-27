@@ -26,13 +26,13 @@
 #include <string.h>
 #include <pthread.h>
 
-#include <cedarv_osal_linux.h>
-#include <cedardev_api.h>
-#include <cedarx_avs_counter.h>
+#include "cedarv_osal_linux.h"
+#include "cedardev_api.h"
+#include "cedarx_avs_counter.h"
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "cedarv_osal_linux"
-#include <CDX_Debug.h>
+#include "CDX_Debug.h"
 
 #define NEW_VERSION 10
 #define USE_SUNXI_MEM_ALLOCATOR 0 
@@ -180,7 +180,7 @@ int cedarx_hardware_init(int mode)
 #else
 		//cdxalloc_open();
 		LOGD("use avheap alloc");
-		av_heap_init(fd);
+		av_heap_init(cedarv_osal_ctx->fd);
 #endif
 
 	#if defined (__CHIP_VERSION_F20) //TODO: move it to video decoder

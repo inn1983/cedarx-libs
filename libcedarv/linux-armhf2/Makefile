@@ -1,7 +1,7 @@
 
-CC  = arm-linux-gnueabihf-gcc
-CPP = arm-linux-gnueabihf-g++
-AR  = arm-linux-gnueabihf-ar
+CC  = gcc
+CPP = g++
+AR  = ar
 
 DATA_SRC=file
 
@@ -10,6 +10,7 @@ CEDARX_CHIP_VERSION=A20
 
 SRCDIRS     := . \
 			  ./cedarv_osal \
+			  ./avheap \
 			  ./sunxi_allocator \
 			  ./vdecoder \
 			  ./vdecoder/fbm \

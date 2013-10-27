@@ -9,7 +9,7 @@ CEDARDIR=$(shell pwd)
 
 include $(CEDARDIR)/cedardefs.mk
 
-CFLAGS += $(CEDARINCLUDES)
+CFLAGS += $(CEDARINCLUDES) -fPIC
 
 SRCS = \
 	libcedarv/vdecoder.c \
