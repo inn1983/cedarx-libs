@@ -390,7 +390,7 @@ int cedarv_wait_ve_ready()
 {
     int    status;
 
-	//printf("wait ve start!\n"); //printf("getchar()!\n");getchar();
+	printf("wait ve start!\n"); //printf("getchar()!\n");getchar();
 	status = ioctl(cedarv_osal_ctx->fd, IOCTL_WAIT_VE_DE, 1);  //.tbd driver timeout set it to -1
 	if(status <= 0)
 	{   
@@ -602,11 +602,11 @@ void cedarx_cache_op(long start, long end, int flag)
 	cr.start = start;
 	cr.end = end;
 	if((unsigned long)(end - start) > 1024*1024*64) {
-		LOGE("flush cache fail, range error!");
+		LOGV("flush cache fail, range error!");
 		return;
 	}
 
-	//LOGV("flush start: 0x%x 0x%x len:%d",start, end, end-start);
+	LOGV("flush start: 0x%x 0x%x len:%d",start, end, end-start);
 	ioctl(cedarv_osal_ctx->fd, IOCTL_FLUSH_CACHE, &cr);
 #endif
 }
@@ -657,7 +657,9 @@ long long gettimeofday_curr()
 
 void avs_counter_config()
 {
-	ioctl(cedarv_osal_ctx->fd, IOCTL_CONFIG_AVS2, 0);
+	int ret;
+	ret=ioctl(cedarv_osal_ctx->fd, IOCTL_CONFIG_AVS2, 0);
+	printf("avs counter config %d \n");
 }
 
 void avs_counter_start()
