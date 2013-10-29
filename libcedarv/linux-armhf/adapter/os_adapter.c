@@ -68,7 +68,7 @@ void  mem_flush_cache(u8* mem, u32 size)
 
 u32 mem_get_phy_addr(u32 virtual_addr)
 {
-	return av_heap_physic_addr((void*)virtual_addr);
+	return (u32)av_heap_physic_addr((void*)virtual_addr);
 }
 
 //*******************************************************//

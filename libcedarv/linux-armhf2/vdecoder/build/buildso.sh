@@ -1,6 +1,6 @@
 #!/bin/bash
   rm *.o
-gcc -g -c -fPIC *.c 
+gcc -g -c -fPIC *.c  
 #-D__LINKFORLINUX
   rm *.a
   ar cq libbdv.a *.o

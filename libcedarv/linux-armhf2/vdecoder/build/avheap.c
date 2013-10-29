@@ -505,7 +505,7 @@ int av_heap_init(int fd)
     heap_ctx->fd = fd;
     int ret = 0;
 	ret = ioctl(fd, IOCTL_TEST_VERSION, 0);
-	loge("ret iotctl_test_version %d",ret); 
+	loge("ret iotctl_test_version "); 
     if(heap_ctx->fd == -1 || heap_ctx->fd == 0)
     {
         loge("file descriptor of driver '/dev/cedar_dev' is invalid, return fail.");

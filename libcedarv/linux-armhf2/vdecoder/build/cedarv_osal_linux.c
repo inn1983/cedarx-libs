@@ -149,9 +149,9 @@ int cedarx_hardware_init(int mode)
 		ioctl(cedarv_osal_ctx->fd, IOCTL_GET_ENV_INFO, (unsigned long)&cedarv_osal_ctx->env_info);
 
 		cedarv_osal_ctx->env_info.address_macc = (unsigned int)mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_SHARED,
-				cedarv_osal_ctx->fd, (int)cedarv_osal_ctx->env_info.address_macc);
-//		LOGD("@@@@@@@@--address-macc: 0x%p phymem_start: 0x%p phymem_total_size:0x%x\n",cedarv_osal_ctx->env_info.address_macc,
-//						cedarv_osal_ctx->env_info.phymem_start,cedarv_osal_ctx->env_info.phymem_total_size);
+				cedarv_osal_ctx->fd, (off_t)cedarv_osal_ctx->env_info.address_macc);
+		LOGD("@@@@@@@@--address-macc: 0x%p phymem_start: 0x%p phymem_total_size:0x%x\n",cedarv_osal_ctx->env_info.address_macc,
+						cedarv_osal_ctx->env_info.phymem_start,cedarv_osal_ctx->env_info.phymem_total_size);
 		wall_clock = 0;
 		avs_cnt_last = 0;
 
@@ -198,6 +198,7 @@ int cedarx_hardware_init(int mode)
 
 		{ //don't touch below code!
 			cedarv_osal_ctx->ve_version = *((unsigned int *)(cedarv_osal_ctx->env_info.address_macc+0xf0)) >> 16;
+		LOGD("ver version %d %d\n",cedarv_osal_ctx->ve_version,0x1625);
 			if(cedarv_osal_ctx->ve_version == 0x1625)
 			{
 				int chip_version,chip_id;
