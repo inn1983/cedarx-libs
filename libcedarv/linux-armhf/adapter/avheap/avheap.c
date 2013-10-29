@@ -653,7 +653,7 @@ void av_heap_free(void* vaddr)
 }
 
 
-void  av_heap_flush_cache(int* mem, int size)
+void  av_heap_flush_cache(int mem, int size)
 
 {
 

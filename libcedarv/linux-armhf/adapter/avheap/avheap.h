@@ -49,7 +49,7 @@ void* av_heap_alloc(int size);
 //************************************************************************//
 void av_heap_free(void* mem);
 
-void  av_heap_flush_cache(int* mem, int size);
+void  av_heap_flush_cache(int mem, int size);
 //************************************************************************//
 //* get physical address from a virtual memory address.
 //************************************************************************//

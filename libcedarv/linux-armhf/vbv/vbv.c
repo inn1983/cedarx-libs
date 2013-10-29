@@ -32,7 +32,7 @@ typedef struct VBV_MANAGER
     Handle          mutex;
     u8*             vbv_buf;
     u8*             vbv_buf_end;
-    u8*             read_addr;
+   // u8*             read_addr;
     u8*             write_addr;
     u32             valid_size;
     u32             max_size;
@@ -94,7 +94,7 @@ Handle vbv_init(u32 vbv_size, u32 max_frame_num)
     vbv->vbv_buf     = vbv_buf;
     vbv->max_size    = vbv_size;
     vbv->vbv_buf_end = vbv_buf + vbv_size - 1;
-    vbv->read_addr   = vbv_buf;
+    //vbv->read_addr   = vbv_buf;
     vbv->write_addr  = vbv->vbv_buf;
     vbv->valid_size  = 0;
 
@@ -197,50 +197,55 @@ s32 vbv_add_stream(vstream_data_t* stream, Handle vbv)
     u32    write_index;
     u8*    new_write_addr;
     vbv_t* v;
+    stream_frame_t* frame;
 
     v = (vbv_t*)vbv;
 
     if (stream == NULL || v == NULL)
-    {
         return -1;
-    }
+
+    if (v->frame_fifo.frame_num >= v->frame_fifo.max_frame_num)
+        return -1;
+
+    if (stream->length + v->valid_size > v->max_size)
+        return -1;
 
     if(lock(v) != 0)
         return -1;
 
-    if (v->frame_fifo.frame_num >= v->frame_fifo.max_frame_num)
-    {
-        unlock(v);
-        return -1;
-    }
 
-    if (stream->length + v->valid_size > v->max_size)
-    {
-        unlock(v);
-        return -1;
+    new_write_addr = v->write_addr + stream->length;
+    if (new_write_addr >= v->vbv_buf_end) { 
+      u32 size = v->vbv_buf_end - v->write_addr;
+      mem_cpy(v->write_addr, stream->data, size);
+      mem_flush_cache(v->write_addr, size);
+      mem_cpy(v->vbv_buf, stream->data + size, stream->length - size);
+      mem_flush_cache(v->vbv_buf, stream->length - size);
+      new_write_addr -= v->max_size;
+    } else {
+      mem_cpy(v->write_addr, stream->data, stream->length);
+      mem_flush_cache(v->write_addr, stream->length);
     }
 
     write_index = v->frame_fifo.write_index;
-    mem_cpy(&v->frame_fifo.in_frames[write_index].vstream, stream, sizeof(vstream_data_t));
-    mem_flush_cache(&v->frame_fifo.in_frames[write_index].vstream,sizeof(vstream_data_t));
-    enqueue_to_tail(&v->frame_fifo.in_frames[write_index], &v->frame_queue);     //* add this frame to the queue tail.
-    write_index++;
-    if (write_index >= v->frame_fifo.max_frame_num)
-    {
+    frame = &v->frame_fifo.in_frames[write_index];
+    frame->vstream.data = stream->data;
+    frame->vstream.length = stream->length;
+    frame->vstream.pts = stream->pts;
+    frame->vstream.pcr = stream->pcr;
+    frame->vstream.valid = stream->valid;
+    frame->vstream.stream_type = stream->stream_type;
+    frame->vstream.pict_prop = stream->pict_prop;
+    frame->vstream.data = v->write_addr;
+    write_index ++;
+    if (write_index >= v->frame_fifo.max_frame_num) {
         write_index = 0;
     }
-
     v->frame_fifo.write_index = write_index;
     v->frame_fifo.frame_num++;
     v->valid_size += stream->length;
-
-    new_write_addr = v->write_addr + stream->length;
-    if (new_write_addr > v->vbv_buf_end)
-    {
-        new_write_addr -= v->max_size;
-    }
-
     v->write_addr = new_write_addr;
+    enqueue_to_tail(frame,&v->frame_queue);     //* add this frame to the queue tail.
 
     unlock(v);
 
@@ -283,8 +288,8 @@ vstream_data_t* vbv_request_stream_frame(Handle vbv)
 void vbv_return_stream_frame(vstream_data_t* stream, Handle vbv)
 {
     vbv_t* v;
-    s32 delta;
-    u32 frame_num;
+    int i;
+    stream_frame_t* frame = NULL;    
 
     v = (vbv_t*)vbv;
 
@@ -303,15 +308,18 @@ void vbv_return_stream_frame(vstream_data_t* stream, Handle vbv)
         unlock(v);
         return;
     }
-    //this is return operation, be careful.
-    delta = stream->id - v->frame_fifo.in_frames[v->frame_fifo.read_index].id;
-    if(delta < 0)
-    {
-    	delta = v->frame_fifo.in_frames[v->frame_fifo.read_index].id - stream->id;
-    }
 
-    frame_num =( v->frame_fifo.read_index + delta) % v->frame_fifo.max_frame_num;
-    enqueue_to_head(&v->frame_fifo.in_frames[frame_num], &v->frame_queue);
+    
+    if (stream) {
+        if (v->frame_fifo.frame_num > 0) {
+            for(i = 0; i < v->frame_fifo.max_frame_num; i++) {
+                frame = &v->frame_fifo.in_frames[i];
+                if (stream == &frame->vstream) {
+                    enqueue_to_head(frame,&v->frame_queue);
+                }
+            }
+        }
+    }
 
     unlock(v);
     return;
@@ -322,6 +330,8 @@ void vbv_flush_stream_frame(vstream_data_t* stream, Handle vbv)
 {
     u32    read_index;
     vbv_t* v;
+    int i;
+    stream_frame_t* frame = NULL;    
 
     v = (vbv_t*)vbv;
 
@@ -341,30 +351,22 @@ void vbv_flush_stream_frame(vstream_data_t* stream, Handle vbv)
         return;
     }
 
-    read_index = v->frame_fifo.read_index;
-    if(stream != &v->frame_fifo.in_frames[read_index].vstream)
-    {
-        unlock(v);
-        return;
+
+
+    if ( stream) {
+        if (v->frame_fifo.frame_num > 0) {
+            for(i = 0; i < v->frame_fifo.max_frame_num; i++) {
+                frame = &v->frame_fifo.in_frames[i];
+                if (stream == &frame->vstream) {
+                    v->frame_fifo.frame_num--;
+                    v->valid_size -= stream->length;
+                }
+            }
+        }
     }
 
-    read_index++;
-    if (read_index == v->frame_fifo.max_frame_num)
-    {
-        read_index = 0;
-    }
-
-    v->frame_fifo.read_index = read_index;
-    v->frame_fifo.frame_num--;
-    v->valid_size -= stream->length;
-    v->read_addr += stream->length;
-    if (v->read_addr > v->vbv_buf_end)
-    {
-        v->read_addr  -= v->max_size;
-    }
 
     unlock(v);
-
     return;
 }
 
@@ -419,7 +421,8 @@ void vbv_reset(Handle vbv)
     if(lock(v) != 0)
         return;
 
-    v->read_addr = v->write_addr = v->vbv_buf;
+    //v->read_addr = 
+    v->write_addr = v->vbv_buf;
     v->valid_size = 0;
 
     v->frame_fifo.frame_num   = 0;
