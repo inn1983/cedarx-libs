@@ -37,7 +37,7 @@ enum CEDARX_CACHE_OP {
 	CEDARX_DCACHE_FLUSH_ALL,
 };
 
-typedef struct cedarv_cache_range_{
+typedef struct cedarv_cache_range{
 	long start;
 	long end;
 }cedarv_cache_range;

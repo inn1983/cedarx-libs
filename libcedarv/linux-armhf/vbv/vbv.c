@@ -222,6 +222,7 @@ s32 vbv_add_stream(vstream_data_t* stream, Handle vbv)
 
     write_index = v->frame_fifo.write_index;
     mem_cpy(&v->frame_fifo.in_frames[write_index].vstream, stream, sizeof(vstream_data_t));
+    mem_flush_cache(&v->frame_fifo.in_frames[write_index].vstream,sizeof(vstream_data_t));
     enqueue_to_tail(&v->frame_fifo.in_frames[write_index], &v->frame_queue);     //* add this frame to the queue tail.
     write_index++;
     if (write_index >= v->frame_fifo.max_frame_num)

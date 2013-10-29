@@ -653,6 +653,27 @@ void av_heap_free(void* vaddr)
 }
 
 
+void  av_heap_flush_cache(int* mem, int size)
+
+{
+
+    if (heap_ctx->fd != -1) 
+    {
+        struct cedarv_cache_range range =
+        {
+
+            .start = (int)mem,
+
+            .end = (int)(mem + size)
+
+        };
+
+        ioctl(heap_ctx->fd, IOCTL_FLUSH_CACHE, (void*)(&range));
+	printf("av_heap_flush_cache\n");
+    }
+}
+
+
 //************************************************************************//
 //* get physical address from a virtual memory address.
 //************************************************************************//

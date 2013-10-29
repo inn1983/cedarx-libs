@@ -803,6 +803,7 @@ static s32 vdecoder_set_video_bitstream_info(cedarv_decoder_t* p, cedarv_stream_
         }
 
     	mem_cpy(decoder->stream_info.init_data, info->init_data, decoder->stream_info.init_data_len);
+	mem_flush_cache(decoder->stream_info.init_data,decoder->stream_info.init_data_len);
     }
     else
     	decoder->stream_info.init_data = NULL;

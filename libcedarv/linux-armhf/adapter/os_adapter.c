@@ -61,6 +61,8 @@ void  mem_cpy(void* dst, void* src, u32 size)
 
 void  mem_flush_cache(u8* mem, u32 size)
 {
+
+	av_heap_flush_cache((int)mem,(int)size);
 	//eLIBs_CleanFlushDCacheRegion(mem, size);
 
 }
