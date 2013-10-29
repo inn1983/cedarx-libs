@@ -15,7 +15,7 @@ struct STREAM_FRAME
 typedef struct STREAM_FIFO
 {
     stream_frame_t* in_frames;
-    u32             read_index;
+    //u32             read_index;
     u32             write_index;
     u32             frame_num;
     u32             max_frame_num;
@@ -99,7 +99,7 @@ Handle vbv_init(u32 vbv_size, u32 max_frame_num)
     vbv->valid_size  = 0;
 
     vbv->frame_fifo.frame_num     = 0;
-    vbv->frame_fifo.read_index    = 0;
+    //vbv->frame_fifo.read_index    = 0;
     vbv->frame_fifo.write_index   = 0;
     vbv->frame_fifo.max_frame_num = max_frame_num;
 
@@ -328,7 +328,7 @@ void vbv_return_stream_frame(vstream_data_t* stream, Handle vbv)
 
 void vbv_flush_stream_frame(vstream_data_t* stream, Handle vbv)
 {
-    u32    read_index;
+    //u32    read_index;
     vbv_t* v;
     int i;
     stream_frame_t* frame = NULL;    
@@ -426,7 +426,7 @@ void vbv_reset(Handle vbv)
     v->valid_size = 0;
 
     v->frame_fifo.frame_num   = 0;
-    v->frame_fifo.read_index  = 0;
+    //v->frame_fifo.read_index  = 0;
     v->frame_fifo.write_index = 0;
     v->frame_queue.frame_num  = 0;
     v->frame_queue.head       = NULL;
