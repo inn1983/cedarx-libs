@@ -68,6 +68,11 @@ cedarv_decoder_t* libcedarv_init(s32* return_value)
 
 	printf("libcedarv init\n");
 	*return_value = CEDARV_RESULT_ERR_FAIL;
+	ret=cedarx_hardware_init(2);// CEDARX_HARDWARE_MODE_VIDEO
+        if (ret < 0)
+        {
+                LOGE("cedarx_hardware_init failed");
+        }
 
 	p = (video_decoder_t*)mem_alloc(sizeof(video_decoder_t));
 	if (p == NULL)
@@ -122,13 +127,7 @@ cedarv_decoder_t* libcedarv_init(s32* return_value)
 #endif
 #endif
 
-	ret=cedarx_hardware_init(2);// CEDARX_HARDWARE_MODE_VIDEO
-        if (ret < 0)
-        {
-                LOGE("cedarx_hardware_init failed");
-        }
-
-
+	
 	return (cedarv_decoder_t*)p;
 }
 
