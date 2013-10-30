@@ -10,7 +10,7 @@ s32 OpenMediaFile(void** ppCtrl, const char* file_path)
 	handle = (stream_handle *)malloc(sizeof(stream_handle));
 	if(handle == NULL)
 	{
-		__msg("malloc handle failed");
+		printf("malloc handle failed");
 		return -1;
 	}
 
@@ -18,7 +18,7 @@ s32 OpenMediaFile(void** ppCtrl, const char* file_path)
 	handle->fp = fopen(file_path, "rb");
 	if(handle->fp == NULL)
 	{
-		__msg("open file error");
+		printf("open file error");
 		free(handle);
 		handle = NULL;
 		return -1;
@@ -34,6 +34,7 @@ s32 OpenMediaFile(void** ppCtrl, const char* file_path)
 	handle->stream_info.frame_rate		 = 30*1000;
 	handle->stream_info.init_data_len	 = 0;
 	handle->stream_info.init_data		 = 0;
+
 
 	*ppCtrl = handle;
 	return 0;

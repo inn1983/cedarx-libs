@@ -180,7 +180,7 @@ int cedarx_hardware_init(int mode)
 #else
 		//cdxalloc_open();
 		LOGD("use avheap alloc");
-		av_heap_init(fd);
+		av_heap_init(cedarv_osal_ctx->fd);
 #endif
 
 	#if defined (__CHIP_VERSION_F20) //TODO: move it to video decoder

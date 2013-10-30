@@ -28,16 +28,16 @@ s32 OpenMediaFile(void** ppCtrl, const char* file_path)
     memset(pCtrl, 0, sizeof(__PMPCTRLBLK));
 
     //* create pmp file handler
-    retVal = pmp_create(&pCtrl->pmpHdlr);
-    if (retVal != PMP_PARSER_OK)
-        goto _err_open_media_file;
+    //retVal = pmp_create(&pCtrl->pmpHdlr);
+    //if (retVal != PMP_PARSER_OK)
+    //    goto _err_open_media_file;
 
-    //* pass the file pointer to pmp file handler
-    retVal = pmp_set_input_media_file(pCtrl->pmpHdlr, fp);
-    if (retVal != PMP_PARSER_OK)
-        goto _err_open_media_file;
+    ////* pass the file pointer to pmp file handler
+    //retVal = pmp_set_input_media_file(pCtrl->pmpHdlr, fp);
+    //if (retVal != PMP_PARSER_OK)
+    //    goto _err_open_media_file;
 
-    fp = NULL;
+    //fp = NULL;
 
     *ppCtrl = pCtrl;
     return 0;

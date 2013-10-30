@@ -34,6 +34,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define VIDEO_PACKET_TYPE		(0)
+#define AUDIO_PACKET_TYPE		(1)
 
 typedef struct STREAMHANDLE
 {

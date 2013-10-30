@@ -505,7 +505,7 @@ int av_heap_init(int fd)
     heap_ctx->fd = fd;
     int ret = 0;
 	ret = ioctl(fd, IOCTL_TEST_VERSION, 0);
-	loge("ret iotctl_test_version "); 
+	printf("ret iotctl_test_version %d\n",ret); 
     if(heap_ctx->fd == -1 || heap_ctx->fd == 0)
     {
         loge("file descriptor of driver '/dev/cedar_dev' is invalid, return fail.");
@@ -533,6 +533,7 @@ int av_heap_init(int fd)
         return -1;
     }
 
+    printf("av heap init ok\n"); 
     return 0;
 }
 
@@ -557,6 +558,7 @@ int av_heap_release(void)
 
     heap_ctx = NULL;
 
+    printf("av heap release\n"); 
     return 0;
 }
 
@@ -613,6 +615,7 @@ void* av_heap_alloc(int size)
 
     pthread_mutex_unlock(&heap_ctx->mutex);
 
+    printf("av heap alloc\n"); 
     return heap_ctx->block_info[block_idx].vaddr;
 }
 
@@ -653,6 +656,7 @@ void av_heap_free(void* vaddr)
 
     pthread_mutex_unlock(&heap_ctx->mutex);
 
+    printf("av heap free\n"); 
     return;
 }
 
@@ -697,6 +701,7 @@ void* av_heap_vir2phy(void* vaddr)
     if(block_idx == MAX_BLOCK_NUM)
         return NULL;
 
+    printf("av heap vir2phy\n"); 
     return (unsigned char*)heap_ctx->block_info[block_idx].paddr + (cur_addr - block_start);
 }
 

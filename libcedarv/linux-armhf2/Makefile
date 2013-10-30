@@ -3,21 +3,13 @@ CC  = gcc
 CPP = g++
 AR  = ar
 
-DATA_SRC=file
+#DATA_SRC=file
 
 #A10 A13 A20 A23 A31
 CEDARX_CHIP_VERSION=A20
 
 SRCDIRS     := . \
-			  ./cedarv_osal \
-			  ./avheap \
-			  ./sunxi_allocator \
-			  ./vdecoder \
-			  ./vdecoder/fbm \
-			  ./vdecoder/vbv \
-			  ./vdecoder/libve \
-			  ./vdecoder/adapter \
-			  ./vdecoder/adapter/adapter_cedarx_linux_$(CEDARX_CHIP_VERSION)  
+			  ./vdecoder/build 
 			
 ifeq ($(DATA_SRC), file)
 SRCDIRS+=./file_parser
@@ -26,7 +18,7 @@ SRCDIRS+=./stream_parser
 endif
 			  
 INCLUDES := $(foreach dir,$(SRCDIRS),-I$(dir))
-INCLUDES := $(INCLUDES) -I./include -I./include/include_system -I./include/include_platform/CHIP_$(CEDARX_CHIP_VERSION)
+INCLUDES := $(INCLUDES) -I./vdecoder/build 
 SRCCS    = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
 OBJ  	 := $(SRCCS:%.c=%.o)
 
@@ -43,7 +35,7 @@ LIBS += -lpthread ./vdecoder/libve/libvecore.so
 TARGET = ve
 
 all: $(TARGET)
-
+CPP=gcc
 $(TARGET): $(OBJ)
 	$(CPP) $(CFLAGS) -o $@ $^ $(LIBS)
 

@@ -437,11 +437,13 @@ int cedarv_f23_ic_version()
 
 void cedarv_enable_ve_core()
 {
+	printf("set enable ve core\n");
 	ioctl(cedarv_osal_ctx->fd, IOCTL_ENABLE_VE, 0);
 }
 
 void cedarv_request_ve_core()
 {
+	printf("set request ve core\n");
 	ioctl(cedarv_osal_ctx->fd, IOCTL_ENGINE_REQ, 0);
 }
 
@@ -458,16 +460,19 @@ void cedarv_set_ve_freq(int freq) //MHz
 		}
 	}
 
+	printf("set ve freq\n");
 	ioctl(cedarv_osal_ctx->fd, IOCTL_SET_VE_FREQ, freq);
 }
 
 void cedarv_reset_ve_core()
 {
+	printf("set reset ve\n");
 	ioctl(cedarv_osal_ctx->fd, IOCTL_RESET_VE, 0);
 }
 
 static void cedarv_set_ve_ref_count(int ref_count)
 {
+	printf("set ve refcount\n");
 	ioctl(cedarv_osal_ctx->fd, IOCTL_SET_REFCOUNT, ref_count);
 }
 

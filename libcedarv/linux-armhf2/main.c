@@ -4,15 +4,12 @@
 #include <pthread.h>
 
 #include "vdecoder/libcedarv.h"	//* for decoding video
-#include "file_parser/pmp_ctrl.h"
+#include "stream_parser/stream_ctrl.h"
 
 static pthread_mutex_t gDecoderMutex = PTHREAD_MUTEX_INITIALIZER;
-static const char* gMediaFilePath[4] =
+static const char* gMediaFilePath[1] =
 {
-	"/mnt/1.pmp",
-	"/mnt/2.pmp",
-	"/mnt/3.pmp",
-	"/mnt/4.pmp"
+	"/root/sintel_trailer-1080p.mp4"
 };
 
 void* decode_thread(void* param)
@@ -37,7 +34,9 @@ void* decode_thread(void* param)
 
 	//*********************************************************************
 	decode_thread_id = (int)param;
+printf(" thread id %d \n",decode_thread_id);
 	file_path = (char*)gMediaFilePath[decode_thread_id];
+	printf(" file %s \n",file_path);
 
 
 	//*********************************************************************
@@ -106,54 +105,54 @@ void* decode_thread(void* param)
 		}
 
 		//* b. read packet to decoder and decode.
-		if(pkt_type == VIDEO_PACKET_TYPE)
-		{
-			//* request bit stream data buffer from libcedarv.
-			if(pkt_length == 0)	//* for some file format, packet length may be unknown.
-				pkt_length = 64*1024;
+		//if(pkt_type == VIDEO_PACKET_TYPE)
+		//{
+		//	//* request bit stream data buffer from libcedarv.
+		//	if(pkt_length == 0)	//* for some file format, packet length may be unknown.
+		//		pkt_length = 64*1024;
 
 _read_again:
-			ret = decoder->request_write(decoder, pkt_length, &buf0, &bufsize0, &buf1, &bufsize1);
-			if(ret < 0)
-			{
-				//* request bit stream data buffer fail, may be the bit stream FIFO is full.
-				//* in this case, we should call decoder->decode(...) to decode stream data and release bit stream buffer.
-				//* here we just use a single thread to do the data parsing/decoding/picture requesting work, so it is
-				//* invalid to see that the bit stream FIFO is full.
-				printf("request bit stream buffer fail.\n");
-				break;
-			}
+		//	ret = decoder->request_write(decoder, pkt_length, &buf0, &bufsize0, &buf1, &bufsize1);
+		//	if(ret < 0)
+		//	{
+		//		//* request bit stream data buffer fail, may be the bit stream FIFO is full.
+		//		//* in this case, we should call decoder->decode(...) to decode stream data and release bit stream buffer.
+		//		//* here we just use a single thread to do the data parsing/decoding/picture requesting work, so it is
+		//		//* invalid to see that the bit stream FIFO is full.
+		//		printf("request bit stream buffer fail.\n");
+		//		break;
+		//	}
 
-			//* read bit stream data to the buffer.
-			GetChunkData(parser, buf0, bufsize0, buf1, bufsize1, &data_info);
+		//	//* read bit stream data to the buffer.
+		//	GetChunkData(parser, buf0, bufsize0, buf1, bufsize1, &data_info);
 
-			//* tell libcedarv stream data has been added.
-			decoder->update_data(decoder, &data_info);		//* this decoder operation do not use hardware, so need not lock the mutex.
+		//	//* tell libcedarv stream data has been added.
+		//	decoder->update_data(decoder, &data_info);		//* this decoder operation do not use hardware, so need not lock the mutex.
 
-			//* decode bit stream data.
-			pthread_mutex_lock(&gDecoderMutex);
-			ret = decoder->decode(decoder);
-			pthread_mutex_unlock(&gDecoderMutex);
-			
-			printf("decoder %d return %d\n", decode_thread_id, ret);
-			if(ret == CEDARV_RESULT_ERR_NO_MEMORY || ret == CEDARV_RESULT_ERR_UNSUPPORTED)
-			{
-				printf("bit stream is unsupported.\n");
-				break;
-			}
+		//	//* decode bit stream data.
+		//	pthread_mutex_lock(&gDecoderMutex);
+		//	ret = decoder->decode(decoder);
+		//	pthread_mutex_unlock(&gDecoderMutex);
+		//	
+		//	printf("decoder %d return %d\n", decode_thread_id, ret);
+		//	if(ret == CEDARV_RESULT_ERR_NO_MEMORY || ret == CEDARV_RESULT_ERR_UNSUPPORTED)
+		//	{
+		//		printf("bit stream is unsupported.\n");
+		//		break;
+		//	}
 
-			//* request picture from libcedarv.
-			ret = decoder->display_request(decoder, &picture);		//* this decoder operation do not use hardware, so need not lock the mutex.
-			if(ret == 0)
-			{
-				//* get one picture from decoder success, do some process work on this picture.
-				usleep(1000*30);
-				
-				//* release the picture to libcedarv.
-				decoder->display_release(decoder, picture.id);		//* this decoder operation do not use hardware, so need not lock the mutex.
-			}
-		}
-		else
+		//	//* request picture from libcedarv.
+		//	ret = decoder->display_request(decoder, &picture);		//* this decoder operation do not use hardware, so need not lock the mutex.
+		//	if(ret == 0)
+		//	{
+		//		//* get one picture from decoder success, do some process work on this picture.
+		//		usleep(1000*30);
+		//		
+		//		//* release the picture to libcedarv.
+		//		decoder->display_release(decoder, picture.id);		//* this decoder operation do not use hardware, so need not lock the mutex.
+		//	}
+		//}
+		//else
 		{
 			//* skip audio or other media packets.
 			SkipChunkData(parser);
@@ -194,14 +193,14 @@ int main(int argc, char** argv)
 	printf("create four decode task.\n");
 
 	pthread_create(&t0, NULL, decode_thread, (void*)0);
-	pthread_create(&t1, NULL, decode_thread, (void*)1);
-	pthread_create(&t2, NULL, decode_thread, (void*)2);
-	pthread_create(&t3, NULL, decode_thread, (void*)3);
+	//pthread_create(&t1, NULL, decode_thread, (void*)1);
+	//pthread_create(&t2, NULL, decode_thread, (void*)2);
+	//pthread_create(&t3, NULL, decode_thread, (void*)3);
 
 	pthread_join(t0, (void**)&ret);
-	pthread_join(t1, (void**)&ret);
-	pthread_join(t2, (void**)&ret);
-	pthread_join(t3, (void**)&ret);
+	//pthread_join(t1, (void**)&ret);
+	//pthread_join(t2, (void**)&ret);
+	//pthread_join(t3, (void**)&ret);
 	printf("decode task all finish.\n");
 	
 	printf("begin cedarx hardware exit.\n");
