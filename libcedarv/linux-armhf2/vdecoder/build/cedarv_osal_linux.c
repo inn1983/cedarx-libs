@@ -25,10 +25,10 @@
 #include <semaphore.h>
 #include <string.h>
 #include <pthread.h>
-
 #include "cedarv_osal_linux.h"
 #include "cedardev_api.h"
 #include "cedarx_avs_counter.h"
+#include "avheap.h"
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "cedarv_osal_linux"
@@ -57,17 +57,17 @@ extern void sunxi_flush_cache(void* startAddr, int size);
 extern void sunxi_flush_cache_all();
 #else
 //extern int cdxalloc_open();
-extern int av_heap_init();
+//extern int av_heap_init();
 //extern int cdxalloc_close();
-extern int ave_heap_release();
+//extern int ave_heap_release();
 //extern void* cdxalloc_alloc(int size);
-extern void* av_heap_alloc(int size);
+//extern void* av_heap_alloc(int size);
 //extern void cdxalloc_free(void *address);
-extern void av_heap_free(void *address);
+//extern void av_heap_free(void *address);
 //extern unsigned int cdxalloc_vir2phy(void *address);
-extern unsigned int av_heap_vir2phy(void *address);
+//extern unsigned int av_heap_vir2phy(void *address);
 //extern unsigned int cdxalloc_phy2vir(void *address);
-extern unsigned int av_heap_phy2vir(void *address);
+//extern unsigned int av_heap_phy2vir(void *address);
 #endif
 
 static void cedarv_set_ve_ref_count(int ref_count);
