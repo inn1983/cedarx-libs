@@ -63,6 +63,9 @@ cedarv_decoder_t* libcedarv_init(s32* return_value)
 {
 	video_decoder_t* p;
 	int ret;
+	video_decoder_t* decoder;
+	vresult_e   tmpret;
+	cedarv_stream_info_t      stream_info;
 
 	LogOpen();
 
@@ -128,100 +131,55 @@ cedarv_decoder_t* libcedarv_init(s32* return_value)
 #endif
 
 	
-	return (cedarv_decoder_t*)p;
-}
+//	return (cedarv_decoder_t*)p;
+//}
 
+//static s32 vdecoder_open(cedarv_decoder_t* p)
+//{
+	
+	printf("pointer video_decoder_t %d\n",p);
+	printf("video_stream_type %d\n",p->icedarv.video_stream_type);
 
-s32 libcedarv_exit(cedarv_decoder_t* p)
-{
-	video_decoder_t* decoder;
+        printf("open %d\n",p->icedarv.open);
+        printf("open %d\n",p->icedarv.close);
+        printf("open %d\n",p->icedarv.decode);
+        printf("open %d\n",p->icedarv.ioctrl);
+        printf("open %d\n",p->icedarv.request_write);
+        printf("open %d\n",p->icedarv.update_data);
+        printf("open %d\n",p->icedarv.display_request);
+        printf("open %d\n",p->icedarv.picture_ready);
+        printf("open %d\n",p->icedarv.display_release);
+        printf("open %d\n",p->icedarv.cedarx_cookie);
 
-	if(p == NULL)
-		return CEDARV_RESULT_ERR_INVALID_PARAM;
-
-	decoder = (video_decoder_t*)p;
-
-	if(decoder->stream_info.init_data != NULL)
-	{
-		mem_free(decoder->stream_info.init_data);
-		decoder->stream_info.init_data = NULL;
-	}
-
-	if(decoder->ve != NULL)
-	{
-		libve_close(0, decoder->ve);
-		decoder->ve = NULL;
-		decoder->fbm = NULL;
-	}
-
-	if(decoder->vbv != NULL)
-	{
-		vbv_release(decoder->vbv);
-		decoder->vbv = NULL;
-	}
-
-	if(decoder->vbv_num == 2 && decoder->minor_vbv != NULL)
-	{
-		vbv_release(decoder->minor_vbv);
-		decoder->minor_vbv = NULL;
-	}
-
-	free_rotate_frame_buffer(decoder);//dy_rot
-
-	mem_free(decoder);
-
-	ve_release_clock();
-
-#if DEBUG_SAVE_BITSTREAM
-	if(fpStream)
-	{
-#ifdef MELIS
-		eLIBs_fclose(fpStream);
-#else
-		fclose(fpStream);
-		if(fpStream2){
-			fclose(fpStream2);
-		}
-#endif
-		fpStream = NULL;
-		fpStream2 = NULL;
-	}
-#endif
-
-	LogClose();
-
-	return CEDARV_RESULT_OK;    
-}
-
-
-static s32 vdecoder_open(cedarv_decoder_t* p)
-{
-	video_decoder_t* decoder;
-    vresult_e   tmpret;
+        printf("open rotate %d\n",p->rotate_img[2].id);
+        printf("open rotate %d\n",p->rotate_img[2].y);
+        printf("open rotate %d\n",p->rot_img_y_v[2]);
 
 	if(p == NULL)
 		return CEDARV_RESULT_ERR_INVALID_PARAM;
 
-	decoder = (video_decoder_t*)p;
+	decoder = p;
+	//p->icedarv.set_vstream_info((cedarv_decoder_t*)p, &stream_info);
+
+	decoder->stream_info.format 			 = STREAM_FORMAT_H264;
+	decoder->stream_info.sub_format 		 = CEDARV_SUB_FORMAT_UNKNOW;
+	decoder->stream_info.container_format = CONTAINER_FORMAT_UNKNOW;
+	decoder->stream_info.video_width 	 = 640;
+	decoder->stream_info.video_height	 = 480;
+	decoder->stream_info.frame_rate		 = 30*1000;
+	decoder->stream_info.frame_duration	 = 0;
+	decoder->stream_info.aspect_ratio	 = 800/480*1000;
+	decoder->stream_info.frame_rate		 = 30*1000;
+	decoder->stream_info.init_data_len	 = 0;
+	decoder->stream_info.init_data		 = 0;
+
+
+
+
 	if(decoder->stream_info.format == STREAM_FORMAT_UNKNOW)
 		return CEDARV_RESULT_ERR_UNSUPPORTED;
 
-	#ifdef MELIS
-	if(decoder->stream_info.sub_format == CEDARV_MPEG4_SUB_FORMAT_DIVX1)
-	{
-	    return CEDARV_RESULT_ERR_UNSUPPORTED;
-	}
-	if(decoder->stream_info.format == STREAM_FORMAT_MPEG4 && decoder->stream_info.sub_format == CEDARV_MPEG4_SUB_FORMAT_DIVX2)
-	{
-	    if(decoder->stream_info.video_height > 480)//not support 720p for melis
-	    {
-	        return CEDARV_RESULT_ERR_UNSUPPORTED;
-	    }
-	}
-	
-	#endif
-
-	//* currently we only support double stream video in format of MJPEG and H264.
+		//* currently we only support double stream video in format of MJPEG and H264.
 	//* for MJPEG, the two stream are packet in one VBV module.
 	//if(decoder->stream_info._3d_mode == _3D_MODE_DOUBLE_STREAM)
 	//{
@@ -236,8 +194,8 @@ static s32 vdecoder_open(cedarv_decoder_t* p)
 	//	}
 	//}
 	
-	if(decoder->disable_3d)
-		decoder->stream_info._3d_mode = _3D_MODE_NONE;
+	//if(decoder->disable_3d)
+	//	decoder->stream_info._3d_mode = _3D_MODE_NONE;
 
 	//if(decoder->status == CEDARV_STATUS_PREVIEW)
 	//{
@@ -253,21 +211,21 @@ static s32 vdecoder_open(cedarv_decoder_t* p)
 	//}
 	//else
 	//{
-		vdecoder_set_vbv_vedec_memory(decoder);
-		LogX(L2, "config_vbv_size  = %d",  decoder->config_vbv_size);
-		if(decoder->config_vbv_size != 0)
-    		decoder->max_vbv_buffer_size = decoder->config_vbv_size;
-			
-		decoder->vbv = vbv_init(decoder->max_vbv_buffer_size, BITSTREAM_FRAME_NUM);
-		vbv_set_parent(decoder, decoder->vbv);
-		vbv_set_free_vbs_sem_cb(libcedarv_free_vbs_buffer_sem, decoder->vbv);
-		if(decoder->vbv_num == 2)
-		{
-			printf("vbv_num=2\n");
-			decoder->minor_vbv = vbv_init(decoder->max_vbv_buffer_size, BITSTREAM_FRAME_NUM);
-			vbv_set_parent(decoder, decoder->minor_vbv);
-			vbv_set_free_vbs_sem_cb(libcedarv_free_vbs_buffer_sem, decoder->minor_vbv);
-		}
+		//vdecoder_set_vbv_vedec_memory(decoder);
+		//LogX(L2, "config_vbv_size  = %d",  decoder->config_vbv_size);
+		//if(decoder->config_vbv_size != 0)
+    		//decoder->max_vbv_buffer_size = decoder->config_vbv_size;
+		//	
+		decoder->vbv = NULL;//vbv_init(decoder->max_vbv_buffer_size, BITSTREAM_FRAME_NUM);
+		//vbv_set_parent(decoder, decoder->vbv);
+		//vbv_set_free_vbs_sem_cb(libcedarv_free_vbs_buffer_sem, decoder->vbv);
+		//if(decoder->vbv_num == 2)
+		//{
+		//	printf("vbv_num=2\n");
+		//	decoder->minor_vbv = vbv_init(decoder->max_vbv_buffer_size, BITSTREAM_FRAME_NUM);
+		//	vbv_set_parent(decoder, decoder->minor_vbv);
+		//	vbv_set_free_vbs_sem_cb(libcedarv_free_vbs_buffer_sem, decoder->minor_vbv);
+		//}
 
 	//}
 
@@ -334,19 +292,19 @@ static s32 vdecoder_open(cedarv_decoder_t* p)
 	//	decoder->config_info.yv12_output_enable = 0;
 	//}
 
-	if(decoder->status == CEDARV_STATUS_PREVIEW)
-	{
-		decoder->config_info.same_scale_ratio_enable = 1;
-	}
+	//if(decoder->status == CEDARV_STATUS_PREVIEW)
+	//{
+	//	decoder->config_info.same_scale_ratio_enable = 1;
+	//}
 
-	tmpret=libve_set_ive(&IVE);
-	LogX(L2, " libve set ive %d", tmpret);
-	tmpret=libve_set_ios(&IOS);
-	LogX(L2, " libve set ios %d", tmpret);
-	tmpret=libve_set_ifbm(&IFBM);
-	LogX(L2, " libve set ifbm %d", tmpret);
-	tmpret=libve_set_ivbv(&IVBV);
-	LogX(L2, " libve set ivbv %d", tmpret);
+	//tmpret=libve_set_ive(&IVE);
+	//LogX(L2, " libve set ive %d", tmpret);
+	//tmpret=libve_set_ios(&IOS);
+	//LogX(L2, " libve set ios %d", tmpret);
+	//tmpret=libve_set_ifbm(&IFBM);
+	//LogX(L2, " libve set ifbm %d", tmpret);
+	//tmpret=libve_set_ivbv(&IVBV);
+	//LogX(L2, " libve set ivbv %d", tmpret);
 
 		LogX(L2, "libve_open() try");
 	decoder->ve = libve_open(&decoder->config_info, &decoder->stream_info, (void*)decoder);
@@ -400,8 +358,75 @@ static s32 vdecoder_open(cedarv_decoder_t* p)
         Log("set sequence info fail, ret[%x]\n", tmpret);
         return CEDARV_RESULT_ERR_FAIL;
     }
+	return (cedarv_decoder_t*)p;
+}
+static s32 vdecoder_open(cedarv_decoder_t* p)
+{
     return CEDARV_RESULT_OK;
 }
+
+
+s32 libcedarv_exit(cedarv_decoder_t* p)
+{
+	video_decoder_t* decoder;
+
+	if(p == NULL)
+		return CEDARV_RESULT_ERR_INVALID_PARAM;
+
+	decoder = (video_decoder_t*)p;
+
+	if(decoder->stream_info.init_data != NULL)
+	{
+		mem_free(decoder->stream_info.init_data);
+		decoder->stream_info.init_data = NULL;
+	}
+
+	if(decoder->ve != NULL)
+	{
+		libve_close(0, decoder->ve);
+		decoder->ve = NULL;
+		decoder->fbm = NULL;
+	}
+
+	if(decoder->vbv != NULL)
+	{
+		vbv_release(decoder->vbv);
+		decoder->vbv = NULL;
+	}
+
+	if(decoder->vbv_num == 2 && decoder->minor_vbv != NULL)
+	{
+		vbv_release(decoder->minor_vbv);
+		decoder->minor_vbv = NULL;
+	}
+
+	free_rotate_frame_buffer(decoder);//dy_rot
+
+	mem_free(decoder);
+
+	ve_release_clock();
+
+#if DEBUG_SAVE_BITSTREAM
+	if(fpStream)
+	{
+#ifdef MELIS
+		eLIBs_fclose(fpStream);
+#else
+		fclose(fpStream);
+		if(fpStream2){
+			fclose(fpStream2);
+		}
+#endif
+		fpStream = NULL;
+		fpStream2 = NULL;
+	}
+#endif
+
+	LogClose();
+
+	return CEDARV_RESULT_OK;    
+}
+
 
 
 static s32 vdecoder_close(cedarv_decoder_t* p)
